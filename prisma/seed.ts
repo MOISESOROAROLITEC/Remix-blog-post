@@ -40,6 +40,35 @@ async function seed() {
     },
   });
 
+  const posts = [
+    {
+      slug: "faire-la-sesive",
+      title: "Faire la lessive",
+      markdown:
+        "Je me none **SORO MOISE** je prevoit *faire la lessive* ".trim(),
+    },
+    {
+      slug: "epargner-de-l_argent",
+      title: "Epargner de l'argent",
+      markdown:
+        "je (**SORO**) doit éparger de l'argent pour mieux *investire*".trim(),
+    },
+    {
+      slug: "achetter-des-chaussures",
+      title: "Achetter des chaussures",
+      markdown:
+        "Il me faut achetter des **chaussures** le *mois prochain*".trim(),
+    },
+  ];
+
+  for (const post of posts) {
+    await prisma.post.upsert({
+      where: { slug: post.slug },
+      update: post,
+      create: post,
+    });
+  }
+
   console.log(`Database has been seeded. 🌱`);
 }
 
@@ -48,6 +77,6 @@ seed()
     console.error(e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
+  .finally(() => {
+    prisma.$disconnect();
   });

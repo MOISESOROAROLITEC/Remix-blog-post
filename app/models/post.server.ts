@@ -1,14 +1,5 @@
-export async function getPosts() {
-  const posts = [
-    {
-      slug: "faire-la-sesive",
-      title: "Faire la lessive",
-    },
-    {
-      slug: "epargner-de-l_argent",
-      title: "Epargner de l'argent",
-    },
-  ];
+import { prisma } from "~/db.server";
 
-  return posts;
+export async function getPosts() {
+  return await prisma.post.findMany({ select: { slug: true, title: true } });
 }

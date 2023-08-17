@@ -16,7 +16,7 @@ model User {
 
   password Password?
   notes    Note[]
-  Post     Post[]
+  // Post     Post[]
 }
 
 model Password {
@@ -41,7 +41,7 @@ model Note {
 }
 
 model Post {
-  slug     String @id
+  slug     String @id @default(cuid())
   title    String
   markdown String
 
@@ -50,6 +50,6 @@ model Post {
   removeAt  DateTime?
   deleteAt  DateTime?
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  userId String
+  // user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  // userId String
 }
