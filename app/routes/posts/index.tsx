@@ -1,34 +1,18 @@
+import { json } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
+import { getPosts } from "~/models/post.server";
 
-interface postsDataInterface {
-  slug: string;
-  title: string;
-}
+type LoaderData = {
+  posts: Awaited<ReturnType<typeof getPosts>>;
+};
 
 export const loader = async () => {
-  const posts: postsDataInterface[] = [
-    {
-      slug: "faire-la-sesive",
-      title: "Faire la lessive",
-    },
-    {
-      slug: "epargner-de-l_argent",
-      title: "Epargner de l'argent",
-    },
-  ];
-
-  const postsString = JSON.stringify(posts);
-
-  return new Response(postsString, {
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  const posts = await getPosts();
+  return json<LoaderData>({ posts });
 };
 
 export default function PostRoute() {
-  const posts = useLoaderData<postsDataInterface[]>();
-
+  const { posts } = useLoaderData() as LoaderData;
   return (
     <main>
       <ul>
@@ -41,6 +25,9 @@ export default function PostRoute() {
           </li>
         ))}
       </ul>
+      <h2 className="text-red-800">
+        <Link to={"/"}>Acceuil</Link>
+      </h2>
     </main>
   );
 }

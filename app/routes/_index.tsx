@@ -65,7 +65,9 @@ export default function Index() {
             </div>
           </div>
         </div>
-
+        <Link to={"posts"} className="my-5 block text-center text-blue-700">
+          Posts list
+        </Link>
         <div className="mx-auto max-w-7xl px-4 py-2 sm:px-6 lg:px-8">
           <div className="mt-6 flex flex-wrap justify-center gap-8">
             {[
