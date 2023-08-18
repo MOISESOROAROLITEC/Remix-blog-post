@@ -1,42 +1,61 @@
 import { json, redirect } from "@remix-run/node";
 import type { ActionFunction } from "@remix-run/node";
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useNavigation } from "@remix-run/react";
 import { marked } from "marked";
 import { useState } from "react";
 import invariant from "tiny-invariant";
-import { Post } from "~/interfaces/posts.interfaces";
 import { createPost } from "~/models/post.server";
+
+type ActionData =
+  | {
+      slug: string | null;
+      title?: string | null;
+      markdown?: string | null;
+    }
+  | undefined;
 
 export const action: ActionFunction = async ({ request }) => {
   const formData = await request.formData();
 
-  const slug = formData.get("slug") as string;
-  const title = formData.get("title") as string;
-  const markdown = formData.get("markdown") as string;
+  const slug = formData.get("slug");
+  const title = formData.get("title");
+  const markdown = formData.get("markdown");
 
-  const errors = {
+  const errors: ActionData = {
     slug: slug ? null : "Le champ Slug est réquis",
     title: title ? null : "Le champ Titre est réquis",
     markdown: markdown ? null : "Le champ Markdown est réquis",
   };
-
   const hasErrors = Object.values(errors).some((errorMessage) => errorMessage);
-
   if (hasErrors) {
     return json(errors);
   }
 
-  await createPost({ slug, title, markdown });
+  invariant(
+    typeof title === "string",
+    "Le titre doit être une chaine de caractère "
+  );
+  invariant(
+    typeof slug === "string",
+    "L'identifian doit être une chaine de caractère "
+  );
+  invariant(
+    typeof markdown === "string",
+    "La description doit être une chaine de caractère "
+  );
 
+  await createPost({ slug, title, markdown });
   return redirect("/posts/admin");
 };
 
-const inputClassName = "w-full rounded border border-grey-500 px-2 text-lg";
-const errorsClassName = "block w-full text-center text-sm text-red-300 ";
-
 export default function CreateNewPostRoute() {
+  const inputClassName = "w-full rounded border border-grey-500 px-2 text-lg";
+  const errorsClassName = "block w-full text-center text-sm text-red-300 ";
   const [markdown, setMarkdown] = useState("");
-  const errors = useActionData<Post | undefined>();
+  const errors = useActionData<ActionData>();
+
+  const transition = useNavigation();
+  const isLoading = Boolean(transition.formAction);
   return (
     <Form method="post">
       <p className="mb-3">
@@ -99,9 +118,10 @@ export default function CreateNewPostRoute() {
       <p className="flex justify-end">
         <button
           type="submit"
-          className="rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-700 active:bg-blue-900"
+          className="desabled rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-700 active:bg-blue-900"
+          disabled={isLoading}
         >
-          Enregistrer
+          {isLoading ? "Creation ..." : "Enregistrer"}
         </button>
       </p>
     </Form>
