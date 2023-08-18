@@ -13,16 +13,22 @@ export const loader = async () => {
 
 export default function PostsRoute() {
   return (
-    <div>
-      <h2>
+    <main>
+      <header className="mb-5 grid grid-cols-6 ">
         <Link
-          className="text-2xl font-black text-blue-900 hover:underline"
+          className="col-span-2 col-start-2 text-center text-2xl font-black text-blue-900 hover:underline"
           to={"/"}
         >
           Page d'acceuil
         </Link>
-      </h2>
+        <Link
+          className="col-span-2 col-start-4 text-center text-2xl font-black text-blue-900 hover:underline"
+          to={"admin"}
+        >
+          Admin
+        </Link>
+      </header>
       <Outlet />
-    </div>
+    </main>
   );
 }
