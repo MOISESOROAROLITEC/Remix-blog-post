@@ -1,6 +1,6 @@
 import { LoaderFunction, json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData } from "@remix-run/react";
-import { PostsDataInterface } from "~/interfaces/posts.interfaces";
+import { Post } from "~/interfaces/posts.interfaces";
 import { getPostListings } from "~/models/post.server";
 
 export const loader: LoaderFunction = async () => {
@@ -8,23 +8,21 @@ export const loader: LoaderFunction = async () => {
 };
 
 export default function AdminRoute() {
-  const posts = useLoaderData() as PostsDataInterface[];
+  const posts = useLoaderData() as Post[];
 
   return (
-    <main className="grap-4 grid grid-cols-6">
-      <div className="posts-list col-span-2 grid">
+    <main className="grap-5 grid grid-cols-12">
+      <div className="posts-list col-span-3 col-start-2 block">
         {posts.map((post) => (
-          <Link
-            key={post.slug}
-            to={post.slug}
-            className="text-blue-600 underline"
-          >
-            {" "}
-            {post.title}{" "}
-          </Link>
+          <div key={post.slug}>
+            <Link to={post.slug} className="text-blue-600 hover:underline">
+              {" "}
+              {post.title}{" "}
+            </Link>
+          </div>
         ))}
       </div>
-      <div className="col-span-4">
+      <div className="col-span-6 col-start-6">
         <Outlet />
       </div>
     </main>
