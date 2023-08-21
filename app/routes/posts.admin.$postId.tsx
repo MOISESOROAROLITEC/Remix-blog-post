@@ -1,10 +1,18 @@
+import { Post } from "@prisma/client";
 import { json, redirect } from "@remix-run/node";
-import type { ActionFunction } from "@remix-run/node";
-import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import {
+  Form,
+  Link,
+  useActionData,
+  useLoaderData,
+  useNavigation,
+} from "@remix-run/react";
 import { marked } from "marked";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import invariant from "tiny-invariant";
-import { createPost } from "~/models/post.server";
+import { createPost, getPostById, updatePost } from "~/models/post.server";
+import { requireAdmin } from "~/session.server";
 
 type ActionData =
   | {
@@ -14,9 +22,22 @@ type ActionData =
     }
   | undefined;
 
-export const action: ActionFunction = async ({ request }) => {
-  const formData = await request.formData();
+export const loader: LoaderFunction = async ({ request, params }) => {
+  await requireAdmin(request);
+  const { postId } = params;
+  if (postId) {
+    const post = await getPostById(postId);
+    if (post) {
+      return json({ post });
+    }
+  }
+  return json({});
+};
 
+export const action: ActionFunction = async ({ request, params }) => {
+  await requireAdmin(request);
+
+  const formData = await request.formData();
   const slug = formData.get("slug");
   const title = formData.get("title");
   const markdown = formData.get("markdown");
@@ -44,25 +65,43 @@ export const action: ActionFunction = async ({ request }) => {
     "La description doit être une chaine de caractère "
   );
 
-  await createPost({ slug, title, markdown });
+  const postId = params.postId ?? "new";
+
+  if (postId === "new") {
+    await createPost({ slug, title, markdown });
+  } else {
+    await updatePost(postId, { slug, title, markdown });
+  }
   return redirect("/posts/admin");
 };
 
 export default function CreateNewPostRoute() {
   const inputClassName = "w-full rounded border border-grey-500 px-2 text-lg";
   const errorsClassName = "block w-full text-center text-sm text-red-300 ";
-  const [markdown, setMarkdown] = useState("");
-  const errors = useActionData<ActionData>();
+  const data = useLoaderData<{ post?: Post }>();
 
+  const [markdown, setMarkdown] = useState(data.post ? data.post.markdown : "");
+  const [isNewPost, setIsNewPost] = useState(Boolean(!data.post?.slug));
   const transition = useNavigation();
+
+  const errors = useActionData<ActionData>();
   const isLoading = Boolean(transition.formAction);
+
+  useEffect(() => {
+    if (data.post) {
+      setMarkdown(data.post.markdown);
+      setIsNewPost(Boolean(!data.post.slug));
+    }
+  }, [data.post]);
+
   return (
-    <Form method="post">
+    <Form method="post" key={data.post?.slug ?? "new"}>
       <p className="mb-3">
         <label>
           Identifiant
           <input
             type="text"
+            defaultValue={data.post?.slug}
             className={inputClassName}
             name="slug"
             placeholder="entrez_l-id_du_post"
@@ -77,6 +116,7 @@ export default function CreateNewPostRoute() {
           Titre
           <input
             className={inputClassName}
+            defaultValue={data.post?.title}
             type="text"
             name="title"
             placeholder="Entrez le titre ici"
@@ -91,7 +131,7 @@ export default function CreateNewPostRoute() {
           Description
           <textarea
             id="markdown"
-            value={markdown}
+            defaultValue={markdown}
             onChange={(e) => setMarkdown(e.target.value)}
             className={`${inputClassName} font-mono`}
             name="markdown"
@@ -116,28 +156,27 @@ export default function CreateNewPostRoute() {
         )}
       </div>
       <p className="flex justify-end">
-        <Link to={".."}>
-          <button className="mr-4 rounded bg-red-500 px-5 py-2 text-white hover:bg-red-600 active:bg-red-700 ">
-            Annuler
-          </button>
+        <Link
+          to={".."}
+          className="mr-4 rounded bg-red-500 px-5 py-2 text-white hover:bg-red-600 active:bg-red-700 "
+        >
+          Annuler
         </Link>
-        {isLoading ? (
-          <button
-            type="submit"
-            className="rounded bg-blue-400 px-5 py-2 text-white"
-            disabled={true}
-          >
-            Creation ...
-          </button>
-        ) : (
-          <button
-            type="submit"
-            className="rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 active:bg-blue-700"
-            disabled={isLoading}
-          >
-            Enregistrer
-          </button>
-        )}
+
+        <button
+          type="submit"
+          className={
+            isLoading
+              ? "rounded bg-blue-400 px-5 py-2 text-white"
+              : "rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 active:bg-blue-700"
+          }
+          disabled={isLoading}
+        >
+          {isLoading && isNewPost && "Création en cours..."}
+          {!isLoading && isNewPost && "Créer un post"}
+          {isLoading && !isNewPost && "Enregistrement ..."}
+          {!isLoading && !isNewPost && "Enregistrer"}
+        </button>
       </p>
     </Form>
   );

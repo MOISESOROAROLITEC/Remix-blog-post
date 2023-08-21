@@ -44,8 +44,10 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="custom-scroll">
-        <Outlet />
+      <body>
+        <div className="custom-scroll">
+          <Outlet />
+        </div>
         <script
           dangerouslySetInnerHTML={{
             __html: `window.ENV=${JSON.stringify(data.ENV)}`,

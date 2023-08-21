@@ -1,4 +1,11 @@
+import { LoaderFunction, json } from "@remix-run/node";
 import { Link } from "@remix-run/react";
+import { requireAdmin } from "~/session.server";
+
+export const loader: LoaderFunction = async ({ request }) => {
+  await requireAdmin(request);
+  return json({});
+};
 
 export default function AdminIndexRoute() {
   return (
