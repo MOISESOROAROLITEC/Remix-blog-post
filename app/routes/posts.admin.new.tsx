@@ -116,13 +116,23 @@ export default function CreateNewPostRoute() {
         )}
       </p>
       <p className="flex justify-end">
-        <button
-          type="submit"
-          className="desabled rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-700 active:bg-blue-900"
-          disabled={isLoading}
-        >
-          {isLoading ? "Creation ..." : "Enregistrer"}
-        </button>
+        {isLoading ? (
+          <button
+            type="submit"
+            className="rounded bg-blue-400 px-5 py-2 text-white"
+            disabled={true}
+          >
+            Creation ...
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-700 active:bg-blue-900"
+            disabled={isLoading}
+          >
+            Enregistrer
+          </button>
+        )}
       </p>
     </Form>
   );
