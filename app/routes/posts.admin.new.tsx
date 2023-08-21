@@ -1,6 +1,6 @@
 import { json, redirect } from "@remix-run/node";
 import type { ActionFunction } from "@remix-run/node";
-import { Form, useActionData, useNavigation } from "@remix-run/react";
+import { Form, Link, useActionData, useNavigation } from "@remix-run/react";
 import { marked } from "marked";
 import { useState } from "react";
 import invariant from "tiny-invariant";
@@ -103,7 +103,7 @@ export default function CreateNewPostRoute() {
           <span className={errorsClassName}> {errors?.markdown} </span>
         ) : null}
       </p>
-      <p className="mx-6 my-2 h-32 rounded-lg border-2 border-blue-400 bg-blue-200">
+      <div className="mx-6 my-2 h-32 rounded-lg border-2 border-blue-400 bg-blue-200">
         <div className=" border-b-2 border-blue-500 text-center font-black text-blue-800">
           Aperçu de la description
         </div>
@@ -114,8 +114,13 @@ export default function CreateNewPostRoute() {
         {!markdown && (
           <div className="text-center font-thin">Aucune description saisie</div>
         )}
-      </p>
+      </div>
       <p className="flex justify-end">
+        <Link to={".."}>
+          <button className="mr-4 rounded bg-red-500 px-5 py-2 text-white hover:bg-red-600 active:bg-red-700 ">
+            Annuler
+          </button>
+        </Link>
         {isLoading ? (
           <button
             type="submit"
@@ -127,7 +132,7 @@ export default function CreateNewPostRoute() {
         ) : (
           <button
             type="submit"
-            className="rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-700 active:bg-blue-900"
+            className="rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 active:bg-blue-700"
             disabled={isLoading}
           >
             Enregistrer

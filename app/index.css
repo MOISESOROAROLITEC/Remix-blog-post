@@ -1,0 +1,38 @@
+:root {
+  --primary-color-1: #f1f8ff;
+  --primary-color-2: #c0d9ff;
+  --primary-color-3: #97b6ff;
+  --primary-color-4: #6e93ff;
+  --primary-color-5: #4570ff;
+  --primary-color-6: #2857e0;
+  --primary-color-7: #193dbb;
+  --primary-color-8: #0b2497;
+  --primary-color-9: #010a74;
+}
+
+
+.custom-scroll {
+  overflow-y: auto !important;
+  max-height: 100vh !important;
+  margin-right: 3px !important;
+  scrollbar-width: thin !important;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color-5) !important;
+  border-radius: 4px !important;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-color-6) !important;
+  border-radius: 6px !important;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  border-radius: 4px !important;
+}
