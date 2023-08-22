@@ -59,6 +59,24 @@ async function seed() {
       markdown:
         "Il me faut achetter des **chaussures** le *mois prochain*".trim(),
     },
+    {
+      slug: "faire",
+      title: "Faire la lessive reduit",
+      markdown:
+        "Je me none **SORO MOISE** je prevoit *faire la lessive* red".trim(),
+    },
+    {
+      slug: "epargner-de-l_argent-dupliquer",
+      title: "Epargner de l'argent duple in db",
+      markdown:
+        "je (**SORO**) doit éparger de l'argent pour mieux *investire*".trim(),
+    },
+    {
+      slug: "achetter-des-chaussures new choose",
+      title: "Achetter des chaussures",
+      markdown:
+        "Il me faut achetter des **chaussures** le *mois prochain*".trim(),
+    },
   ];
 
   for (const post of posts) {

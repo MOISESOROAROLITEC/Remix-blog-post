@@ -10,7 +10,10 @@ export const loader: LoaderFunction = async ({ request }) => {
 export default function AdminIndexRoute() {
   return (
     <div className="admin-index-page">
-      <Link to={"new"} className="text-blue-600 underline">
+      <Link
+        to={"new"}
+        className="text-md rounded-lg bg-gray-100 px-5 py-2 font-medium text-gray-600 hover:bg-gray-200 hover:text-gray-900 hover:underline active:bg-gray-300"
+      >
         {" "}
         Créer un nouveau post{" "}
       </Link>
