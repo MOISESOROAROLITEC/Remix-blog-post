@@ -1,17 +1,20 @@
-import { Post } from "@prisma/client";
 import { json, redirect } from "@remix-run/node";
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import {
   Form,
   Link,
+  isRouteErrorResponse,
   useActionData,
   useLoaderData,
   useNavigation,
+  useParams,
+  useRouteError,
 } from "@remix-run/react";
 import { marked } from "marked";
 import { useEffect, useState } from "react";
 import invariant from "tiny-invariant";
 import {
+  Post,
   createPost,
   deletePost,
   getPostById,
@@ -27,20 +30,28 @@ type ActionData =
     }
   | undefined;
 
+type LoaderData = {
+  post?: Post;
+};
+
 export const loader: LoaderFunction = async ({ request, params }) => {
   await requireAdmin(request);
-  const { postId } = params;
-  if (postId) {
-    const post = await getPostById(postId);
-    if (post) {
-      return json({ post });
-    }
+  invariant(params.postId, "Le champ Slug est réquis");
+  if (params.postId === "new") {
+    return json<LoaderData>({});
   }
-  return json({});
+
+  const post = await getPostById(params.postId);
+  if (!post) {
+    throw new Response("Post Not Found", { status: 404 });
+  }
+  return json<LoaderData>({ post });
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
   await requireAdmin(request);
+  const postId = params.postId;
+  invariant(postId, "L'id du post (postId) est requis");
 
   const formData = await request.formData();
   const slug = formData.get("slug");
@@ -70,8 +81,6 @@ export const action: ActionFunction = async ({ request, params }) => {
     "La description doit être une chaine de caractère "
   );
   const intent = formData.get("intent") || "create";
-  const postId = params.postId;
-  invariant(postId, "L'id du post (postId) est requis");
 
   if (intent === "update") {
     await updatePost(postId, { slug, title, markdown });
@@ -214,5 +223,35 @@ export default function CreateNewPostRoute() {
         </button>
       </p>
     </Form>
+  );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError() as Error;
+  const param = useParams();
+  if (isRouteErrorResponse(error)) {
+    return (
+      <div>
+        <div className="error-message">
+          Le Post ayant pour identifiant{" "}
+          <span className="text-red-500"> {param.postId} </span> est introuvable
+        </div>
+        <div className="error-status mt-8 text-center text-2xl font-bold tracking-[.5rem]">
+          {" "}
+          {error.status}{" "}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div>
+      <div> Une erreur Inconnue s'est produite</div>
+      <div
+        className="border-black-800 custom-scroll  bg-neutral-600 p-5 text-red-400"
+        style={{ maxHeight: "350px !important" }}
+      >
+        <code>{error.message}</code>
+      </div>
+    </div>
   );
 }
