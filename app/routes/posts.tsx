@@ -1,16 +1,5 @@
-import { json } from "@remix-run/node";
 import { Link, Outlet } from "@remix-run/react";
-import { getPostListings } from "~/models/post.server";
 import { useOptionalAdmin } from "~/utils";
-
-type LoaderData = {
-  posts: Awaited<ReturnType<typeof getPostListings>>;
-};
-
-export const loader = async () => {
-  const posts = await getPostListings();
-  return json<LoaderData>({ posts });
-};
 
 export default function PostsRoute() {
   const isAdmin = useOptionalAdmin();

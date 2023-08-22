@@ -11,7 +11,12 @@ import {
 import { marked } from "marked";
 import { useEffect, useState } from "react";
 import invariant from "tiny-invariant";
-import { createPost, getPostById, updatePost } from "~/models/post.server";
+import {
+  createPost,
+  deletePost,
+  getPostById,
+  updatePost,
+} from "~/models/post.server";
 import { requireAdmin } from "~/session.server";
 
 type ActionData =
@@ -64,13 +69,16 @@ export const action: ActionFunction = async ({ request, params }) => {
     typeof markdown === "string",
     "La description doit être une chaine de caractère "
   );
+  const intent = formData.get("intent") || "create";
+  const postId = params.postId;
+  invariant(postId, "L'id du post (postId) est requis");
 
-  const postId = params.postId ?? "new";
-
-  if (postId === "new") {
-    await createPost({ slug, title, markdown });
-  } else {
+  if (intent === "update") {
     await updatePost(postId, { slug, title, markdown });
+  } else if (intent === "delete") {
+    await deletePost(postId);
+  } else {
+    await createPost({ slug, title, markdown });
   }
   return redirect("/posts/admin");
 };
@@ -78,19 +86,23 @@ export const action: ActionFunction = async ({ request, params }) => {
 export default function CreateNewPostRoute() {
   const inputClassName = "w-full rounded border border-grey-500 px-2 text-lg";
   const errorsClassName = "block w-full text-center text-sm text-red-300 ";
-  const data = useLoaderData<{ post?: Post }>();
 
-  const [markdown, setMarkdown] = useState(data.post ? data.post.markdown : "");
-  const [isNewPost, setIsNewPost] = useState(Boolean(!data.post?.slug));
+  const data = useLoaderData<{ post?: Post }>();
+  const errors = useActionData<ActionData>();
   const transition = useNavigation();
 
-  const errors = useActionData<ActionData>();
-  const isLoading = Boolean(transition.formAction);
+  const isCreating = transition.formData?.get("intent") === "create";
+  const isUpdating = transition.formData?.get("intent") === "update";
+  const isDeleting = transition.formData?.get("intent") === "delete";
+
+  const isNewPost = !data.post?.slug;
+  const [markdown, setMarkdown] = useState(
+    data.post?.markdown ? data.post.markdown : ""
+  );
 
   useEffect(() => {
     if (data.post) {
       setMarkdown(data.post.markdown);
-      setIsNewPost(Boolean(!data.post.slug));
     }
   }, [data.post]);
 
@@ -131,7 +143,7 @@ export default function CreateNewPostRoute() {
           Description
           <textarea
             id="markdown"
-            defaultValue={markdown}
+            defaultValue={data.post?.markdown}
             onChange={(e) => setMarkdown(e.target.value)}
             className={`${inputClassName} font-mono`}
             name="markdown"
@@ -149,7 +161,9 @@ export default function CreateNewPostRoute() {
         </div>
         <div
           className="m-3"
-          dangerouslySetInnerHTML={{ __html: marked(markdown) }}
+          dangerouslySetInnerHTML={{
+            __html: marked(markdown),
+          }}
         ></div>
         {!markdown && (
           <div className="text-center font-thin">Aucune description saisie</div>
@@ -158,24 +172,45 @@ export default function CreateNewPostRoute() {
       <p className="flex justify-end">
         <Link
           to={".."}
-          className="mr-4 rounded bg-red-500 px-5 py-2 text-white hover:bg-red-600 active:bg-red-700 "
+          className="mr-4 rounded bg-red-400 px-5 py-2 text-white hover:bg-red-600 active:bg-red-700 "
         >
           Annuler
         </Link>
 
+        {!isNewPost && (
+          <button
+            type="submit"
+            value="delete"
+            name="intent"
+            className={
+              isDeleting
+                ? "mr-4 rounded bg-red-400 px-5 py-2 text-white"
+                : "mr-4 rounded bg-red-500 px-5 py-2 text-white hover:bg-red-600 active:bg-red-700"
+            }
+            disabled={isDeleting || isCreating || isUpdating}
+          >
+            {isDeleting ? "Suppression..." : "Supprimer"}
+          </button>
+        )}
+
         <button
           type="submit"
+          value={isNewPost ? "create" : "update"}
+          name="intent"
           className={
-            isLoading
+            isCreating || isUpdating
               ? "rounded bg-blue-400 px-5 py-2 text-white"
               : "rounded bg-blue-500 px-5 py-2 text-white hover:bg-blue-600 active:bg-blue-700"
           }
-          disabled={isLoading}
+          disabled={isCreating || isUpdating || isDeleting}
         >
-          {isLoading && isNewPost && "Création en cours..."}
-          {!isLoading && isNewPost && "Créer un post"}
-          {isLoading && !isNewPost && "Enregistrement ..."}
-          {!isLoading && !isNewPost && "Enregistrer"}
+          {isNewPost
+            ? isCreating
+              ? "Création en cours..."
+              : "Créer un post"
+            : isUpdating
+            ? "Sauvegarde ..."
+            : "Sauvegarder"}
         </button>
       </p>
     </Form>
